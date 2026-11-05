@@ -2,6 +2,8 @@
 
 ## Visão geral do workflow
 
+![Fluxo de automação do Hefesius AI](docs/workflow-hefesius-ai.png.png)
+
 > **Protótipo de estudo com dados fictícios.** Este repositório demonstra automação comercial low-code; **não é um agente de IA**, não tem consulta ao estoque de fornecedores em tempo real, não efetua pagamentos e não envia mensagens automaticamente aos clientes.
 
 ## O problema
