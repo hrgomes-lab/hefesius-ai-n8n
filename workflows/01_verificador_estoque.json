@@ -1,0 +1,205 @@
+{
+  "name": "HEFESIUS AI - 01 - Verificador de estoque (treino)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "fbb012be-dec0-4f4e-9489-2377db11070d",
+      "name": "Iniciar teste",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bad0ce2d-0c1a-490c-a174-795df970d33b",
+              "name": "produto",
+              "value": "iPhone 13",
+              "type": "string"
+            },
+            {
+              "id": "27ed8096-d7d0-4990-b3f8-f7c7ff9497c2",
+              "name": "quantidade_desejada",
+              "value": 2,
+              "type": "number"
+            },
+            {
+              "id": "ecaf1dcf-e297-49fb-ae7a-480325535cd2",
+              "name": "estoque",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "0440b025-4a67-4986-81d9-66ce7d089ae4",
+              "name": "preco_unitario",
+              "value": 2200,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9651ab09-014f-4c35-a118-616a4b6f0e06",
+      "name": "Pedido ficticio",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0a3f793e-eb4c-4e16-8adb-7676233f2c0f",
+              "leftValue": "={{ $json.estoque }}",
+              "rightValue": "={{ $json.quantidade_desejada }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "20ef0ff1-7f17-40ba-a604-f0a1f8d151ef",
+      "name": "Tem estoque suficiente?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "21195307-f7c5-452c-9394-563b327a9aee",
+              "name": "status",
+              "value": "DISPONIVEL",
+              "type": "string"
+            },
+            {
+              "id": "7c28a8d1-f9bd-4012-ace2-4a0cd7fd2316",
+              "name": "proxima_acao",
+              "value": "Conferir preco e confirmar com fornecedor antes de oferecer ao cliente.",
+              "type": "string"
+            },
+            {
+              "id": "b100f533-b9fb-4174-a17b-b69bd79de45c",
+              "name": "valor_total",
+              "value": "={{ $json.quantidade_desejada * $json.preco_unitario }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "c5eb67ee-63e4-4cd8-a8c2-f13bd3edebfd",
+      "name": "Resultado disponivel",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a9aba296-b441-4d16-8f69-93ba7c0b06fb",
+              "name": "status",
+              "value": "INDISPONIVEL",
+              "type": "string"
+            },
+            {
+              "id": "a49c2929-dd7f-4468-8006-d4cc49c63ba3",
+              "name": "proxima_acao",
+              "value": "Registrar interesse e verificar reposicao com fornecedores.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "080672e3-a163-4946-b75f-974b45ff4f2b",
+      "name": "Resultado indisponivel",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        208
+      ]
+    }
+  ],
+  "connections": {
+    "Iniciar teste": {
+      "main": [
+        [
+          {
+            "node": "Pedido ficticio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pedido ficticio": {
+      "main": [
+        [
+          {
+            "node": "Tem estoque suficiente?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem estoque suficiente?": {
+      "main": [
+        [
+          {
+            "node": "Resultado disponivel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Resultado indisponivel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "active": false,
+  "pinData": {},
+  "tags": []
+}

@@ -1,0 +1,448 @@
+{
+  "name": "HEFESIUS AI - 02 - Formulario de Pedidos",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Hefesius — Solicitação de iPhone",
+        "formDescription": "Consulte a disponibilidade de aparelhos. Formulário de demonstração.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Modelo do iPhone",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "iPhone 13"
+                  },
+                  {
+                    "option": "iPhone 14"
+                  },
+                  {
+                    "option": "iPhone 15"
+                  },
+                  {
+                    "option": "iPhone 16"
+                  },
+                  {
+                    "option": "iPhone 17"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Quantidade Desejada",
+              "fieldType": "number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e2d1033a-5b76-406c-a8d8-f8423507ee9a",
+      "name": "On form submission",
+      "webhookId": "b11820f6-0b6c-46c1-85b6-a53b6746e0cf"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "97e9d095-d0be-4454-9b9d-b63a18c47d51",
+              "name": "produto",
+              "value": "={{ $json[\"Modelo do iPhone\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "bac3b52b-58e8-424f-8bce-bc0d9306486e",
+              "name": "quantidade_desejada",
+              "value": "={{ Number.isFinite(Number($json[\"Quantidade Desejada\"])) ? Number($json[\"Quantidade Desejada\"]) : 0 }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "ab11e7fa-be71-42e6-a115-376ea2dd9187",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "hefesius_produtos"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "produto",
+              "keyValue": "={{ $json.produto }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "7ba0edfb-065e-471f-a62e-9de04db19b22",
+      "name": "Get row(s)",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "221a33db-071e-4275-ab61-323025463a27",
+              "leftValue": "={{ $json.estoque }}",
+              "rightValue": "={{ $('Edit Fields').item.json.quantidade_desejada }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "a9dfc709-b5ba-4f00-96d0-2140b0b3685d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9da90657-e157-4289-8b95-e4a32bc4914d",
+              "name": "status",
+              "value": "estoque_insuficiente",
+              "type": "string"
+            },
+            {
+              "id": "a4132005-de26-4f3e-aea1-1e043fc74bc6",
+              "name": "mensagem",
+              "value": "=Não conseguimos atender ao pedido de {{ $('Edit Fields').item.json.quantidade_desejada }} unidades de {{ $json.produto }}. Estoque disponível: {{ $json.estoque }} unidades.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1264,
+        64
+      ],
+      "id": "21dfd5f1-0379-4793-b5f7-81548155f30c",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "68d606aa-d19b-4234-8a69-577b60760a39",
+              "name": "status",
+              "value": "disponivel",
+              "type": "string"
+            },
+            {
+              "id": "81429f96-5a49-4f40-a391-b13daa38bced",
+              "name": "valor_total",
+              "value": "={{ $json.preco_unitario * $('Edit Fields').item.json.quantidade_desejada }}",
+              "type": "number"
+            },
+            {
+              "id": "c2d04873-2fa2-4c8b-bcb9-ee936557a65f",
+              "name": "mensagem",
+              "value": "=Seu pedido de {{ $('Edit Fields').item.json.quantidade_desejada }} unidades de {{ $json.produto }} está disponível! Valor total: {{ ($json.preco_unitario * $('Edit Fields').item.json.quantidade_desejada).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }}.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1344,
+        -80
+      ],
+      "id": "b8fb6685-664f-428a-a5c9-7fa110e8eee4",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "dde07136-b130-47ad-8faa-2076fdd17bb2",
+              "leftValue": "={{ $json.produto }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        896,
+        0
+      ],
+      "id": "4cfb2f65-168c-4748-90d2-9bb5da03574c",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "19d70c49-5da2-4f51-850e-b2e3e539c660",
+              "name": "status",
+              "value": "produto_nao_cadastrado",
+              "type": "string"
+            },
+            {
+              "id": "2ce9c4df-ddaa-4eb3-bf9a-c04ef5764945",
+              "name": "mensagem",
+              "value": "=O produto {{ $('Edit Fields').first().json.produto }} não foi encontrado no cadastro da Hefesius. Precisamos consultar a disponibilidade com o fornecedor.",
+              "type": "string"
+            },
+            {
+              "id": "88dbdf83-0704-4054-9fe3-bd6c3686f1ce",
+              "name": "produto",
+              "value": "={{ $('Edit Fields').first().json.produto }}",
+              "type": "string"
+            },
+            {
+              "id": "bb170a7d-9dc2-41ad-93ca-31e236f4e7a1",
+              "name": "quantidade_desejada",
+              "value": "={{ $('Edit Fields').first().json.quantidade_desejada }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1216,
+        192
+      ],
+      "id": "e6d40a39-b4fa-4d03-a8fa-df1a9047a022",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "f4f0f93f-77ff-4f58-b4e0-7614ac939932",
+              "leftValue": "={{ Number.isInteger($json.quantidade_desejada) && $json.quantidade_desejada >= 1 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        448,
+        0
+      ],
+      "id": "7616cc6c-bfb0-4675-a81c-1eb3858518ce",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6b83385e-e3f6-48ad-a988-f5ff54cbe262",
+              "name": "status",
+              "value": "quantidade_invalida",
+              "type": "string"
+            },
+            {
+              "id": "01ce57bf-95c1-4fc0-83cb-cad7b626049b",
+              "name": "mensagem",
+              "value": "=Não foi possível processar o pedido de {{ $json.quantidade_desejada }} unidades de {{ $json.produto }}. A quantidade solicitada deve ser um número inteiro maior ou igual a 1.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        720,
+        144
+      ],
+      "id": "febb282f-013f-4317-b08b-501115c69612",
+      "name": "Edit Fields4"
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "active": false,
+  "pinData": {},
+  "tags": []
+}
